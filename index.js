@@ -1,16 +1,16 @@
+const mysql = require('mysql');
+const dotenv = require('dotenv');
+const jwt = require('jsonwebtoken');
+const bodyParser = require("body-parser");
+// const { CONNREFUSED } = require('dns');
+
 const express = require("express");
 const app = express();
-
-const mysql = require('mysql');
-
 app.use(express.json());
-const bodyParser = require("body-parser");
-const { CONNREFUSED } = require('dns');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
-
 var con = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -18,13 +18,13 @@ var con = mysql.createConnection({
     database: 'user'
 });
 
-con.connect = function (err) {
+con.connect ( function (err) {
     if (err) {
         console.log(err);
     } else {
         console.log('Connected successfully');
     }
-}
+});
 
 
 
@@ -34,7 +34,7 @@ app.get("/", (req, res) => {
 
 
 app.get("/users", function(req, res)  {
-    con.query('select * from users', function(err,result){
+    con.query('select * from user', function(err,result){
         if (err){
            
             console.log(err, 'No data found');
@@ -49,13 +49,51 @@ app.get("/users", function(req, res)  {
 
 
 
+app.post("/user/generateToken", (req, res) => {
+    // Validate User Here
+    // Then generate JWT Token
+  
+    let jwtSecretKey = process.env.JWT_SECRET_KEY;
+    let data = {
+        time: Date(),
+        userId: 12,
+    }
+  
+    const token = jwt.sign(data, jwtSecretKey);
+  
+    res.send(token);
+});
+
+
+
+
+
+app.post("/signup", function (req, res) {
+
+    //   console.log(res.json())
+    var paramas = req.body;
+    console.log(paramas);
+
+    con.query("INSERT INTO users SET ?", paramas, function (err, results) {
+        if (err) {
+            res.send(err);
+        } else {
+            res.send(results);
+            res.end();
+        }
+            console.log('<<<<<>>>>',results);
+        
+
+    });
+});
+
 
 
 app.post('/post', function(req, res){
 
-    var body = req.body
+    var body = req.body;
 
-    con.query('insert into users =?', function(err, result){
+    con.query('insert into users set ?', body, function(err, result){
         if (err){
             console.log(err);
         }else {
